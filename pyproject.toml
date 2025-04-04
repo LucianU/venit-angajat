@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "venit-angajat"
+version = "0.1.0"
+description = "App that shows required revenue per employee based on salary."
+authors = ["Lucian Ursu <lucian.ursu@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.44.1"
+watchdog = "^6.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
