@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "venit-angajat"
 version = "0.1.0"
-description = "App that shows required revenue per employee based on salary."
+description = "Aplicație care calculează venitul necesar per angajat."
 authors = ["Lucian Ursu <lucian.ursu@gmail.com>"]
 readme = "README.md"
 
