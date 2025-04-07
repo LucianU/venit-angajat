@@ -1,6 +1,8 @@
+
 import streamlit as st
 
-st.title("Venit necesar per angajat — ghid estimativ")
+st.set_page_config(page_title="Venit per angajat", page_icon="💼", layout="centered")
+st.title("💼 Venit necesar per angajat — ghid estimativ")
 
 # Define presets
 presets = {
@@ -27,71 +29,56 @@ presets = {
         "tax_rate": 45,
         "overhead": 1500.0,
         "margin": 20
-    },
-    "Personalizat": {
-        "salary": 5000.0,
-        "tax_rate": 40,
-        "overhead": 1000.0,
-        "margin": 20
     }
 }
+
+# Initialize session state for edit mode
+if "edit_mode" not in st.session_state:
+    st.session_state.edit_mode = False
 
 business_type = st.selectbox("Alege tipul de angajat / afacere:", list(presets.keys()))
 preset = presets[business_type]
 
-# Input handling
-if business_type == "Personalizat":
-    salary = st.number_input(
-        "Salariu brut lunar (RON)",
-        min_value=0.0,
-        value=preset["salary"],
-        help="Salariul brut lunar al angajatului, fără deduceri. Se folosește pentru a calcula costul total pentru angajator."
-    )
-    tax_rate = st.slider(
-        "Taxe angajator (%)",
-        min_value=0, max_value=100,
-        value=preset["tax_rate"],
-        help="Procentul de contribuții sociale și impozite plătite de angajator pentru fiecare angajat."
-    )
-    overhead = st.number_input(
-        "Costuri indirecte per angajat (RON)",
-        min_value=0.0,
-        value=preset["overhead"],
-        help="Cheltuieli asociate cu un angajat, altele decât salariul și taxele: chirie, echipamente, training etc."
-    )
-    margin = st.slider(
-        "Marjă de profit țintă (%)",
-        min_value=0, max_value=100,
-        value=preset["margin"],
-        help="Profitul pe care dorești să îl obții peste costurile totale. Afectează venitul minim necesar."
-    )
+if st.button("🔧 Vreau să modific valorile pentru acest rol"):
+    st.session_state.edit_mode = True
+
+if st.session_state.edit_mode:
+    st.subheader("✏️ Editare valori preset")
+    salary = st.number_input("Salariu brut lunar (RON)", min_value=0.0, value=preset["salary"])
+    tax_rate = st.slider("Taxe angajator (%)", min_value=0, max_value=100, value=preset["tax_rate"])
+    overhead = st.number_input("Costuri indirecte/lună (RON)", min_value=0.0, value=preset["overhead"])
+    margin = st.slider("Marjă profit (%)", min_value=0, max_value=100, value=preset["margin"])
 else:
     salary = preset["salary"]
     tax_rate = preset["tax_rate"]
     overhead = preset["overhead"]
     margin = preset["margin"]
 
-    st.markdown(f"""
-    **Valori prestabilite pentru {business_type}:**
-    - Salariu brut: {salary} RON
-    - Taxe angajator: {tax_rate}%
-    - Costuri indirecte: {overhead} RON
-    - Marjă profit: {margin}%
-    """)
+# Display preset values
+st.markdown(f"### Valori prestabilite pentru {business_type}:")
+st.markdown(f"- Salariu brut: {salary:.1f} RON")
+st.markdown(f"- Taxe angajator: {tax_rate}%")
+st.markdown(f"- Costuri indirecte: {overhead:.1f} RON")
+st.markdown(f"- Marjă profit: {margin}%")
 
-# Calculate net salary (approximation)
-net_salary = salary * 0.55
-st.info(f"💡 *Salariu net estimat:* **{net_salary:.2f} RON** *(estimare simplificată pentru contract full-time, fără deduceri speciale)*")
+# Salariu net estimat
+CAS = salary * 0.25
+CASS = salary * 0.10
+taxable = salary - CAS - CASS
+tax = taxable * 0.10
+net_salary = salary - CAS - CASS - tax
 
-# Result
+st.info(f"💡 **Salariu net estimat:** {net_salary:.2f} RON _(estimare simplificată pentru contract full-time, fără deduceri speciale)_")
+
+# Calcul venit necesar
 if margin < 100:
     total_cost = salary * (1 + tax_rate / 100) + overhead
     required_revenue = total_cost / (1 - margin / 100)
-    st.success(f"👉 Venit necesar per angajat: **{required_revenue:.2f} RON/lună**")
+    st.success(f"✅ **Venit necesar per angajat: {required_revenue:.2f} RON/lună**")
 else:
-    st.warning("Marja de profit nu poate fi 100% sau mai mult.")
+    st.warning("⚠️ Marja de profit nu poate fi 100% sau mai mult.")
 
-# Surse și estimări
+# Surse
 with st.expander("📎 Surse și estimări pentru valorile implicite"):
     st.markdown("""
     - **Salarii medii**: bazate pe datele publicate de Institutul Național de Statistică (INS):
@@ -106,16 +93,4 @@ with st.expander("📎 Surse și estimări pentru valorile implicite"):
     *Ultima actualizare: aprilie 2025*
     """)
 
-
-def calculate_net_salary(brut_salary: float) -> float:
-    """
-    Approximate net salary in Romania (standard full-time contract),
-    no tax exemptions, no deductions.
-    """
-    CAS = brut_salary * 0.25
-    CASS = brut_salary * 0.10
-    taxable_income = brut_salary - CAS - CASS
-    income_tax = taxable_income * 0.10
-    net_salary = brut_salary - CAS - CASS - income_tax
-    return net_salary
-
+st.caption("© 2025 Lucian Ursu")
